@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Prevent HTML Caching & Force Refresh on Build Change -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <script>
+      (function() {
+        var FORCE_VER = 'v2026_09_08_FORCE_RELEASE_V100_' + Date.now();
+        var current = localStorage.getItem('lk_app_version_v100');
+        if (current !== 'v100') {
+          localStorage.setItem('lk_app_version_v100', 'v100');
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                names.forEach(function(name) { caches.delete(name); });
+              });
+            }
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                for (var r of regs) { r.unregister(); }
+              });
+            }
+          } catch(e) {}
+        }
+
+        // Global Asset Error Capture (Handles both <script src="..."> and <link rel="modulepreload" href="..."> 404 errors)
+        window.addEventListener('error', function(e) {
+          var target = e.target || e.srcElement;
+          if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+            var url = target.src || target.href || '';
+            console.warn('Asset load error detected on target URL:', url);
+            if (url.indexOf('/assets/') !== -1 || url.indexOf('.js') !== -1 || url.indexOf('.css') !== -1) {
+              try {
+                if ('caches' in window) {
+                  caches.keys().then(function(names) {
+                    names.forEach(function(name) { caches.delete(name); });
+                  });
+                }
+              } catch(err) {}
+              
+              var hasBust = window.location.search.indexOf('cb=') !== -1;
+              if (!hasBust) {
+                var sep = window.location.search ? '&' : '?';
+                window.location.href = window.location.pathname + window.location.search + sep + 'cb=' + Date.now();
+              } else {
+                window.location.reload(true);
+              }
+            }
+          }
+        }, true);
+      })();
+    </script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

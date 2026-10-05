@@ -1,0 +1,32 @@
+# Disable Browser & CDN Caching for HTML and PHP files
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm|php)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0, private, s-maxage=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+    Header set CDN-Cache-Control "no-store"
+    Header set Cloudflare-CDN-Cache-Control "no-store"
+  </FilesMatch>
+</IfModule>
+
+# React SPA Rewrite Rules & Stale Asset Fallback Handlers
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+
+  # Route missing JS asset files to JS auto-reloader script
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} \.js$ [NC]
+  RewriteRule . /assets/fallback-cache-clear.js [L,T=application/javascript]
+
+  # Route missing CSS asset files to empty CSS stylesheet
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} \.css$ [NC]
+  RewriteRule . /assets/fallback.css [L,T=text/css]
+
+  # React SPA Route Fallback
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

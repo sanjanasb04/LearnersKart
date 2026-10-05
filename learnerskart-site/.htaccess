@@ -1,0 +1,28 @@
+DirectoryIndex index.php index.html
+
+RewriteEngine On
+RewriteBase /
+# Redirect legacy /courses/ image requests to /course_images/
+RewriteRule ^courses/(.+\.(jpg|jpeg|png|webp|gif))$ /course_images/$1 [L,NC,R=301]
+
+# 1. Prevent SPA rewrite for missing static assets (.js, .css, etc.)
+RewriteCond %{REQUEST_URI} \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ - [R=404,L]
+
+# 2. Standard SPA Fallback to index.php
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+
+<IfModule mod_headers.c>
+  Header set Clear-Site-Data '"cache"'
+  Header set X-LiteSpeed-Purge "*"
+  Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0, private"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+  Header set CDN-Cache-Control "no-store"
+  Header set Cloudflare-CDN-Cache-Control "no-store"
+</IfModule>
